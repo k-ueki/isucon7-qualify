@@ -93,19 +93,16 @@ type User struct {
 	CreatedAt   time.Time `json:"-" db:"created_at"`
 }
 
-var UserCache map[int64]*User
 
 func getUser(userID int64) (*User, error) {
-	if UserCache[userID]!=nil{
-		return UserCache[userID],nil
-	}
-	if err := db.Get(UserCache[userID], "SELECT * FROM user WHERE id = ?", userID); err != nil {
+	u := User{}
+	if err := db.Get(&u, "SELECT * FROM user WHERE id = ?", userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return UserCache[userID], nil
+	return &u,nil
 }
 
 func addMessage(channelID, userID int64, content string) (int64, error) {
@@ -246,8 +243,7 @@ func getChannel(c echo.Context) error {
 	channels := []ChannelInfo{}
 	err = db.Select(&channels, "SELECT * FROM channel ORDER BY id")
 	if err != nil {
-		return err
-	}
+		return err }
 
 	var desc string
 	for _, ch := range channels {
