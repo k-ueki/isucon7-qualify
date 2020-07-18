@@ -129,17 +129,19 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-var msgCache map[int64]map[int64][]Message
+var msgCache map[int64][]Message
 
 func queryMessages(chanID, lastID int64) ([]Message, error) {
-	if msgCache[chanID][lastID] == nil{
-		err := db.Select(msgCache[chanID][lastID], "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+	if msgCache[chanID] == nil{
+		msgs := []Message{}
+		err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 			lastID, chanID)
 		if err!=nil{
 			return nil,err
 		}
+		msgCache[chanID] = msgs
 	}
-	return msgCache[chanID][lastID],nil
+	return msgCache[chanID],nil
 	//msgs := []Message{}
 	//err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 	//	lastID, chanID)
