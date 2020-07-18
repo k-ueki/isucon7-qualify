@@ -461,7 +461,7 @@ func fetchUnread(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	time.Sleep(time.Second)
+	//time.Sleep(time.Second)
 
 	channels, err := queryChannels()
 	if err != nil {
@@ -481,14 +481,18 @@ func fetchUnread(c echo.Context) error {
 			err = db.Get(&cnt,
 				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id",
 				chID, lastID)
+			if err != nil {
+				return err
+			}
 		} else {
-			err = db.Get(&cnt,
-				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?",
-				chID)
+			//err = db.Get(&cnt,
+			//	"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?",
+			//	chID)
+			cnt = int64(len(msgCache[chID]))
 		}
-		if err != nil {
-			return err
-		}
+		//if err != nil {
+		//	return err
+		//}
 		r := map[string]interface{}{
 			"channel_id": chID,
 			"unread":     cnt}
