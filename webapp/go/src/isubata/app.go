@@ -373,12 +373,9 @@ func jsonifyMessage(m Message) (map[string]interface{}, error) {
 	return r, nil
 }
 
-func getMessage(c echo.Context) error {
-	userID := sessUserID(c)
-	if userID == 0 {
-		return c.NoContent(http.StatusForbidden)
-	}
+var mesCache map[int64]map[int64][]Message
 
+func getMessage(c echo.Context) error {
 	chanID, err := strconv.ParseInt(c.QueryParam("channel_id"), 10, 64)
 	if err != nil {
 		return err
@@ -388,9 +385,17 @@ func getMessage(c echo.Context) error {
 		return err
 	}
 
-	messages, err := queryMessages(chanID, lastID)
-	if err != nil {
-		return err
+	if mesCache[chanID][lastID] == nil{
+		mesCache[chanID][lastID], err = queryMessages(chanID, lastID)
+		if err != nil {
+			return err
+		}
+	}
+	messages := mesCache[chanID][lastID]
+
+	userID := sessUserID(c)
+	if userID == 0 {
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	response := make([]map[string]interface{}, 0)
