@@ -433,10 +433,16 @@ func getMessage(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+var chanCache []int64
+
 func queryChannels() ([]int64, error) {
-	res := []int64{}
-	err := db.Select(&res, "SELECT id FROM channel")
-	return res, err
+	var err error = nil
+	if len(chanCache) == 0{
+		err=db.Select(&chanCache,"SELECT id FROM channel")
+	}
+	//res := []int64{}
+	//err := db.Select(&res, "SELECT id FROM channel")
+	return chanCache, err
 }
 
 func queryHaveRead(userID, chID int64) (int64, error) {
@@ -645,6 +651,7 @@ func postAddChannel(c echo.Context) error {
 		return err
 	}
 	lastID, _ := res.LastInsertId()
+	chanCache = append(chanCache,lastID)
 	return c.Redirect(http.StatusSeeOther,
 		fmt.Sprintf("/channel/%v", lastID))
 }
