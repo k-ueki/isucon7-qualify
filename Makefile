@@ -29,6 +29,7 @@ slow-off:
 
 .PHONY: setup
 setup:
+	sudo apt install git unzip dstat
 	git config --global user.email "ku6.gatt@gmail.com"
 	git config --global user.name "k-ueki"
 	wget https://github.com/matsuu/kataribe/releases/download/v0.4.1/kataribe-v0.4.1_linux_amd64.zip -O kataribe.zip
