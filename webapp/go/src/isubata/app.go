@@ -129,11 +129,23 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+var msgCache map[int64][]Message
+
 func queryMessages(chanID, lastID int64) ([]Message, error) {
-	msgs := []Message{}
-	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
-		lastID, chanID)
-	return msgs, err
+	if msgCache[chanID] == nil{
+		msgs := []Message{}
+		err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+			lastID, chanID)
+		if err!=nil{
+			return nil,err
+		}
+		msgCache[chanID] = msgs
+	}
+	return msgCache[chanID],nil
+	//msgs := []Message{}
+	//err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+	//	lastID, chanID)
+	//return msgs, err
 }
 
 func sessUserID(c echo.Context) int64 {
